@@ -1,38 +1,78 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-
+import { useRouter } from 'expo-router';
 import { Colors, Typography } from '../constants/Theme';
+import { SiteData } from '../constants/Sites';
+import { useLanguage } from '../context/LanguageContext';
+import { useSavedSites } from '../context/SavedSitesContext';
 
-export default function LocationCard() {
+interface LocationCardProps {
+  site: SiteData;
+}
+
+export default function LocationCard({ site }: LocationCardProps) {
+  const router = useRouter();
+   const { t, locale } = useLanguage();
+  const { toggleSaveSite, isSiteSaved } = useSavedSites();
+  
+  const saved = isSiteSaved(site.id);
+
+  const handleBeginJourney = () => {
+    if (site.id === 'maya_devi') {
+      router.push('/temple-detail');
+    } else {
+      // For other sites, we can navigate to a generic screen or just log for now
+      console.log(`Navigating to ${site.title} detail`);
+    }
+  };
+
+  const title = locale === 'ne' ? site.titleNe : site.title;
+  const location = locale === 'ne' ? site.locationNe : site.location;
+  const description = locale === 'ne' ? site.descriptionNe : site.description;
+
   return (
     <View style={styles.container}>
-      <View style={styles.contentRow}>
+      {/* Selection Label */}
+      <Text style={styles.selectionLabel}>{site.category}</Text>
+
+      <View style={styles.headerRow}>
         <Image 
-          source={{ uri: 'https://images.unsplash.com/photo-1600705722908-bab1e61c0b4d?auto=format&fit=crop&q=80&w=200' }} 
+          source={site.image} 
           style={styles.image}
         />
-        <View style={styles.textContainer}>
-          <Text style={styles.categoryText}>QUICK EXPLORE</Text>
-          <Text style={styles.titleText}>Sacred Garden Area</Text>
-          <View style={styles.locationContainer}>
-            <Ionicons name="location-sharp" size={14} color={Colors.primary} />
-            <Text style={styles.locationText}>Main Entrance • 200m away</Text>
+        <View style={styles.titleContainer}>
+          <Text style={styles.titleText}>{title}</Text>
+          <View style={styles.locationRow}>
+            <Ionicons name="location" size={14} color={Colors.primary} />
+            <Text style={styles.locationText}>{location} • {site.distance}</Text>
           </View>
         </View>
       </View>
 
       <Text style={styles.descriptionText}>
-        The focal point of the garden, containing the marker stone that identifies the exact birthplace of Lord Buddha.
+        {description}
       </Text>
 
       <View style={styles.buttonRow}>
-        <TouchableOpacity style={styles.primaryButton}>
-          <Text style={styles.buttonText}>BEGIN JOURNEY</Text>
+        <TouchableOpacity 
+          style={styles.primaryButton}
+          onPress={handleBeginJourney}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.buttonText}>{t('begin_journey')}</Text>
         </TouchableOpacity>
         
-        <TouchableOpacity style={styles.bookmarkButton}>
-          <Ionicons name="bookmark-outline" size={24} color={Colors.secondary} />
+        <TouchableOpacity 
+          style={styles.bookmarkButton} 
+          onPress={() => toggleSaveSite(site.id)}
+          activeOpacity={0.7}
+        >
+          <Ionicons 
+            name={saved ? "bookmark" : "bookmark-outline"} 
+            size={24} 
+            color={saved ? Colors.primary : Colors.gray} 
+          />
         </TouchableOpacity>
       </View>
     </View>
@@ -41,95 +81,98 @@ export default function LocationCard() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.natural,
-    borderRadius: 32,
+    backgroundColor: 'rgba(25, 25, 25, 0.95)',
+    borderRadius: 36,
     padding: 24,
-    width: '90%',
+    width: '92%',
     alignSelf: 'center',
     marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 10,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 0.5,
+    shadowRadius: 30,
+    elevation: 20,
   },
-  contentRow: {
-    flexDirection: 'row',
+  selectionLabel: {
+    color: Colors.gray,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.5,
     marginBottom: 16,
+    fontFamily: Typography.label,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    gap: 16,
   },
   image: {
-    width: 80,
-    height: 80,
+    width: 72,
+    height: 72,
     borderRadius: 20,
-    marginRight: 16,
   },
-  textContainer: {
+  titleContainer: {
     flex: 1,
-    justifyContent: 'center',
-  },
-  categoryText: {
-    color: Colors.primary,
-    fontSize: 12,
-    fontWeight: 'bold',
-    fontFamily: Typography.label,
-    letterSpacing: 1,
-    marginBottom: 4,
   },
   titleText: {
     color: Colors.white,
-    fontSize: 22,
+    fontSize: 24,
     fontFamily: Typography.headline,
     fontWeight: '700',
     marginBottom: 4,
   },
-  locationContainer: {
+  locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 4,
   },
   locationText: {
     color: Colors.gray,
-    fontSize: 12,
-    fontFamily: Typography.body,
-    marginLeft: 4,
+    fontSize: 13,
+    fontWeight: '600',
   },
   descriptionText: {
-    color: Colors.gray,
+    color: 'rgba(255, 255, 255, 0.6)',
     fontSize: 14,
-    fontFamily: Typography.body,
-    lineHeight: 20,
+    lineHeight: 22,
     marginBottom: 24,
+    fontFamily: Typography.body,
   },
   buttonRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 12,
   },
   primaryButton: {
-    backgroundColor: Colors.primary,
-    paddingVertical: 16,
-    paddingHorizontal: 32,
+    backgroundColor: '#FFBE9D',
+    paddingVertical: 18,
     borderRadius: 30,
     flex: 1,
-    marginRight: 12,
     alignItems: 'center',
+    shadowColor: '#FFBE9D',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 5,
   },
   buttonText: {
-    color: Colors.white,
+    color: '#331D12',
     fontSize: 14,
-    fontWeight: '700',
-    fontFamily: Typography.label,
+    fontWeight: '800',
     letterSpacing: 1,
+    fontFamily: Typography.label,
   },
   bookmarkButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#333',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#444',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
 });
