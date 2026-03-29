@@ -6,6 +6,9 @@ import { NotoSerif_400Regular, NotoSerif_700Bold } from '@expo-google-fonts/noto
 import { Inter_400Regular, Inter_700Bold } from '@expo-google-fonts/inter';
 import { Manrope_400Regular, Manrope_700Bold } from '@expo-google-fonts/manrope';
 import CustomSplashScreen from '../components/SplashScreen';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { LanguageProvider } from '../context/LanguageContext';
+import { SavedSitesProvider } from '../context/SavedSitesContext';
 
 ExpoSplashScreen.preventAutoHideAsync();
 
@@ -56,10 +59,23 @@ export default function RootLayout() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="ar" options={{ headerShown: false }} />
-      <Stack.Screen name="chat" options={{ headerShown: false }} />
-    </Stack>
+    <SafeAreaProvider>
+      <LanguageProvider>
+        <SavedSitesProvider>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+            <Stack.Screen name="auth" options={{ headerShown: false }} />
+            <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen name="ar" options={{ headerShown: false }} />
+            <Stack.Screen name="chat" options={{ headerShown: false }} />
+            <Stack.Screen name="historical-timeline" options={{ headerShown: false }} />
+            <Stack.Screen name="temple-detail" options={{ headerShown: false }} />
+            <Stack.Screen name="saved-monuments" options={{ headerShown: false }} />
+            <Stack.Screen name="language-settings" options={{ headerShown: false }} />
+            <Stack.Screen name="app-settings" options={{ headerShown: false }} />
+          </Stack>
+        </SavedSitesProvider>
+      </LanguageProvider>
+    </SafeAreaProvider>
   );
 }

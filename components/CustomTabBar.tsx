@@ -1,65 +1,56 @@
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter, usePathname } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../constants/Theme';
 
 export default function CustomTabBar() {
   const router = useRouter();
   const pathname = usePathname();
+  const insets = useSafeAreaInsets();
+
+  const tabs = [
+    { name: 'map', path: '/', icon: 'map', type: 'material' },
+    { name: 'history', path: '/historical-timeline', icon: 'compass', type: 'ionicons' },
+    { name: 'ar', path: '/ar', icon: 'S_AR', type: 'custom' },
+    { name: 'chat', path: '/chat', icon: 'chatbubble', type: 'ionicons' },
+  ];
 
   return (
-    <View style={styles.wrapper}>
+    <View style={[styles.wrapper, { bottom: Math.max(insets.bottom, 20) + 10 }]}>
       <View style={styles.container}>
-        <TouchableOpacity 
-          style={[styles.tabItem, pathname === '/' && styles.activeTab]}
-          onPress={() => router.push('/')}
-        >
-          <MaterialCommunityIcons 
-            name="map-marker-path" 
-            size={28} 
-            color={pathname === '/' ? Colors.natural : Colors.gray} 
-          />
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.tabItem}>
-          <Ionicons name="compass-outline" size={28} color={Colors.gray} />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={[styles.tabItem, pathname === '/ar' && styles.activeTab]}
-          onPress={() => router.push('/ar' as any)}
-        >
-          <View style={styles.arTabInner}>
-            <MaterialCommunityIcons 
-              name="layers-outline" 
-              size={24} 
-              color={pathname === '/ar' ? Colors.natural : Colors.gray} 
-            />
-            <MaterialCommunityIcons 
-              name="alpha-s" 
-              size={12} 
-              color={pathname === '/ar' ? Colors.natural : Colors.gray} 
-              style={{ position: 'absolute', left: 24, top: 18 }}
-            />
-            <MaterialCommunityIcons 
-              name="alpha-r" 
-              size={12} 
-              color={pathname === '/ar' ? Colors.natural : Colors.gray} 
-              style={{ position: 'absolute', left: 34, top: 18 }}
-            />
-          </View>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={[styles.tabItem, pathname === '/chat' && styles.activeTab]}
-          onPress={() => router.push('/chat' as any)}
-        >
-          <Ionicons 
-            name="chatbubble-outline" 
-            size={26} 
-            color={pathname === '/chat' ? Colors.natural : Colors.gray} 
-          />
-        </TouchableOpacity>
+        {tabs.map((tab) => {
+          const isActive = pathname === tab.path;
+
+          return (
+            <TouchableOpacity
+              key={tab.name}
+              style={[styles.tabItem, isActive && styles.activeTab]}
+              onPress={() => router.push(tab.path as any)}
+              activeOpacity={0.8}
+            >
+              {tab.type === 'custom' ? (
+                <View style={styles.arTabInner}>
+                  <Text style={[styles.arText, isActive && styles.activeArText]}>S_AR</Text>
+                </View>
+              ) : (
+                tab.type === 'ionicons' ? (
+                  <Ionicons
+                    name={tab.icon as any}
+                    size={isActive ? 30 : 26}
+                    color={isActive ? '#331D12' : Colors.gray}
+                  />
+                ) : (
+                  <MaterialCommunityIcons
+                    name={tab.icon as any}
+                    size={isActive ? 30 : 26}
+                    color={isActive ? '#331D12' : Colors.gray}
+                  />
+                )
+              )}
+            </TouchableOpacity>
+          );
+        })}
       </View>
     </View>
   );
@@ -68,7 +59,6 @@ export default function CustomTabBar() {
 const styles = StyleSheet.create({
   wrapper: {
     position: 'absolute',
-    bottom: 40,
     left: 0,
     right: 0,
     alignItems: 'center',
@@ -77,31 +67,46 @@ const styles = StyleSheet.create({
   },
   container: {
     flexDirection: 'row',
-    backgroundColor: `${Colors.natural}E0`, // Natural color with transparency
+    backgroundColor: 'rgba(25, 25, 25, 0.95)', // Deep dark for navigation
     borderRadius: 50,
     paddingHorizontal: 8,
     paddingVertical: 8,
-    width: '85%',
+    width: '88%',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#FFFFFF15',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.4,
+    shadowRadius: 15,
+    elevation: 10,
   },
   tabItem: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
   },
   activeTab: {
-    backgroundColor: Colors.primary,
+    backgroundColor: '#FFBE9D', // Peach/Orange active state
+    shadowColor: '#FFBE9D',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 15,
   },
   arTabInner: {
-    width: '100%',
-    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    flexDirection: 'row',
+  },
+  arText: {
+    color: Colors.gray,
+    fontSize: 14,
+    fontWeight: '900',
+    letterSpacing: -1,
+  },
+  activeArText: {
+    color: '#331D12',
   }
 });
