@@ -73,6 +73,10 @@ export default function RootLayout() {
             <Stack.Screen name="saved-monuments" options={{ headerShown: false }} />
             <Stack.Screen name="language-settings" options={{ headerShown: false }} />
             <Stack.Screen name="app-settings" options={{ headerShown: false }} />
+            <Stack.Screen name="stay-eat" options={{ headerShown: false }} />
+            <Stack.Screen name="stay-detail/[id]" options={{ headerShown: false }} />
+            <Stack.Screen name="eat-detail/[id]" options={{ headerShown: false }} />
+            <Stack.Screen name="booking-stays/[id]" options={{ headerShown: false }} />
           </Stack>
         </SavedSitesProvider>
       </LanguageProvider>

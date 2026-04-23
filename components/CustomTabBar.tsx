@@ -10,14 +10,18 @@ export default function CustomTabBar() {
   const insets = useSafeAreaInsets();
 
   const tabs = [
-    { name: 'map', path: '/', icon: 'map', type: 'material' },
+    { name: 'map', path: '/', icon: 'home', type: 'ionicons' },
     { name: 'history', path: '/historical-timeline', icon: 'compass', type: 'ionicons' },
+    { name: 'stay-eat', path: '/stay-eat', icon: 'food-fork-drink', type: 'material' },
     { name: 'ar', path: '/ar', icon: 'S_AR', type: 'custom' },
-    { name: 'chat', path: '/chat', icon: 'chatbubble', type: 'ionicons' },
+    { name: 'chat', path: '/chat', icon: 'person-circle-outline', type: 'ionicons' },
   ];
 
   return (
-    <View style={[styles.wrapper, { bottom: Math.max(insets.bottom, 20) + 10 }]}>
+    <View 
+      style={[styles.wrapper, { bottom: Math.max(insets.bottom, 20) + 10 }]}
+      pointerEvents="box-none"
+    >
       <View style={styles.container}>
         {tabs.map((tab) => {
           const isActive = pathname === tab.path;
