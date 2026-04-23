@@ -22,10 +22,10 @@ export default function HistoricalTimeline() {
   const timelineData = [
     {
       year: "623 BC",
-      title: t('year_623bc_prophecy_title'),
-      description: t('year_623bc_prophecy_desc'),
+      title: t('year_623bc_lineage_title'),
+      description: t('year_623bc_lineage_desc'),
       image: timeline_1,
-      buttonText: t('year_623bc_prophecy_btn')
+      buttonText: locale === 'en' ? 'Royal Family' : 'शाही परिवार'
     },
     {
       year: "623 BC",
@@ -33,6 +33,20 @@ export default function HistoricalTimeline() {
       description: t('year_623bc_birth_desc'),
       image: timeline_2,
       buttonText: t('year_623bc_birth_btn')
+    },
+    {
+      year: "600 BC",
+      title: t('year_600bc_palace_title'),
+      description: t('year_600bc_palace_desc'),
+      image: timeline_3,
+      buttonText: locale === 'en' ? 'Palace Life' : 'राजदरबार जीवन'
+    },
+    {
+      year: "595 BC",
+      title: t('year_595bc_sights_title'),
+      description: t('year_595bc_sights_desc'),
+      image: timeline_4,
+      buttonText: locale === 'en' ? 'The Four Sights' : 'चार दृश्य'
     },
     {
       year: "594 BC",
@@ -49,11 +63,60 @@ export default function HistoricalTimeline() {
       buttonText: t('year_588bc_enlightenment_btn')
     },
     {
+      year: "588 BC",
+      title: t('year_588bc_sarnath_title'),
+      description: t('year_588bc_sarnath_desc'),
+      image: timeline_5,
+      buttonText: locale === 'en' ? 'First Sermon' : 'पहिलो उपदेश'
+    },
+    {
+      year: "543 BC",
+      title: t('year_543bc_parinirvana_title'),
+      description: t('year_543bc_parinirvana_desc'),
+      image: timeline_1,
+      buttonText: locale === 'en' ? 'Final Journey' : 'अन्तिम यात्रा'
+    },
+    {
+      year: "3rd Cent. BC",
+      title: t('year_3rd_bc_brick_title'),
+      description: t('year_3rd_bc_brick_desc'),
+      image: timeline_2,
+      buttonText: locale === 'en' ? 'Early Worship' : 'प्रारम्भिक पूजा'
+    },
+    {
       year: "249 BC",
       title: t('year_249bc_ashoka_title'),
       description: t('year_249bc_ashoka_desc'),
       image: timeline_5,
       buttonText: t('year_249bc_ashoka_btn')
+    },
+    {
+      year: "403 AD",
+      title: t('year_403ad_faxian_title'),
+      description: t('year_403ad_faxian_desc'),
+      image: timeline_1,
+      buttonText: locale === 'en' ? 'Faxian\'s Travels' : 'फाहियानका यात्रा'
+    },
+    {
+      year: "636 AD",
+      title: t('year_636ad_xuanzang_title'),
+      description: t('year_636ad_xuanzang_desc'),
+      image: timeline_2,
+      buttonText: locale === 'en' ? 'Pillar Records' : 'स्तम्भ अभिलेख'
+    },
+    {
+      year: "14th Cent.",
+      title: t('year_14th_decline_title'),
+      description: t('year_14th_decline_desc'),
+      image: timeline_3,
+      buttonText: locale === 'en' ? 'The Lost Period' : 'गुमेको समय'
+    },
+    {
+      year: "15th-19th Cent.",
+      title: t('year_15th_rummindei_title'),
+      description: t('year_15th_rummindei_desc'),
+      image: timeline_2,
+      buttonText: locale === 'en' ? 'Local Tradition' : 'स्थानीय परम्परा'
     },
     {
       year: "1896 AD",
@@ -63,11 +126,25 @@ export default function HistoricalTimeline() {
       buttonText: t('year_1896ad_discovery_btn')
     },
     {
+      year: "1967 AD",
+      title: t('year_1967ad_masterplan_title'),
+      description: t('year_1967ad_masterplan_desc'),
+      image: timeline_5,
+      buttonText: locale === 'en' ? 'Master Plan' : 'गुरुयोजना'
+    },
+    {
       year: "1997 AD",
       title: t('year_1997ad_unesco_title'),
       description: t('year_1997ad_unesco_desc'),
       image: temple_hero,
       buttonText: t('year_1997ad_unesco_btn')
+    },
+    {
+      year: "2013 AD",
+      title: t('year_2013ad_timber_title'),
+      description: t('year_2013ad_timber_desc'),
+      image: timeline_1,
+      buttonText: locale === 'en' ? 'Scientific Proof' : 'वैज्ञानिक प्रमाण'
     },
     {
       year: "PRESENT",

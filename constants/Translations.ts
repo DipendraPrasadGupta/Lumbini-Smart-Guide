@@ -63,7 +63,31 @@ export type TranslationKeys =
   | 'year_present_sanctuary_desc'
   | 'year_present_sanctuary_btn'
   | 'experience'
-  | 'location_details';
+  | 'location_details'
+  | 'year_403ad_faxian_title'
+  | 'year_403ad_faxian_desc'
+  | 'year_636ad_xuanzang_title'
+  | 'year_636ad_xuanzang_desc'
+  | 'year_14th_decline_title'
+  | 'year_14th_decline_desc'
+  | 'year_1967ad_masterplan_title'
+  | 'year_1967ad_masterplan_desc'
+  | 'year_3rd_bc_brick_title'
+  | 'year_3rd_bc_brick_desc'
+  | 'year_15th_rummindei_title'
+  | 'year_15th_rummindei_desc'
+  | 'year_2013ad_timber_title'
+  | 'year_2013ad_timber_desc'
+  | 'year_623bc_lineage_title'
+  | 'year_623bc_lineage_desc'
+  | 'year_600bc_palace_title'
+  | 'year_600bc_palace_desc'
+  | 'year_595bc_sights_title'
+  | 'year_595bc_sights_desc'
+  | 'year_588bc_sarnath_title'
+  | 'year_588bc_sarnath_desc'
+  | 'year_543bc_parinirvana_title'
+  | 'year_543bc_parinirvana_desc';
 
 export const Translations: Record<'en' | 'ne', Record<TranslationKeys, string>> = {
   en: {
@@ -132,6 +156,30 @@ export const Translations: Record<'en' | 'ne', Record<TranslationKeys, string>> 
     year_present_sanctuary_btn: 'Current Overview',
     experience: 'EXPERIENCE',
     location_details: 'LOCATION DETAILS',
+    year_403ad_faxian_title: 'The Journey of Faxian',
+    year_403ad_faxian_desc: 'The Chinese monk Faxian reached Lumbini, documenting the presence of the sacred pond and the celestial serenity of the birthplace.',
+    year_636ad_xuanzang_title: 'Xuanzangs Detailed Edict',
+    year_636ad_xuanzang_desc: 'Famous traveler Xuanzang visited and provided the first detailed written record of the Ashoka Pillar, including the lightning strike that split it.',
+    year_14th_decline_title: 'The Forgotten Era',
+    year_14th_decline_desc: 'Following the 14th century, the site was slowly reclaimed by the Terai jungles, remaining a hidden sacred secret for centuries.',
+    year_1967ad_masterplan_title: 'Kenzo Tanges Vision',
+    year_1967ad_masterplan_desc: 'UN Secretary-General U Thant visited and initiated the Master Plan by architect Kenzo Tange to develop Lumbini into a global center for peace. This plan laid the foundation for the Monastic Zone and the Sacred Garden as we know them today.',
+    year_3rd_bc_brick_title: 'Early Brick Foundations',
+    year_3rd_bc_brick_desc: 'Before the grand stone structures, early Buddhist devotees constructed intricate brick foundations. These layers, found beneath the current temple, show that the site was a center of worship immediately following the Buddhas Parinirvana.',
+    year_15th_rummindei_title: 'The Goddess of the Woods',
+    year_15th_rummindei_desc: 'During the hidden centuries, local communities continued to worship at the site, identifying Maya Devi as Rummindei, the goddess of the woods. This local tradition unknowingly preserved the sanctity of the birthplace until its rediscovery.',
+    year_2013ad_timber_title: 'The Oldest Shrine',
+    year_2013ad_timber_desc: 'Groundbreaking excavations in 2013 revealed a 6th-century BC timber structure beneath the temple. This discovery provided archaeological evidence that the site is indeed the worlds oldest Buddhist shrine, predating even Emperor Ashoka.',
+    year_623bc_lineage_title: 'The Royal Lineage',
+    year_623bc_lineage_desc: 'Born to King Suddhodana of the Shakya clan and Queen Maya Devi, Siddhartha was destined for greatness. At his birth, celestial signs and the famous seven steps on lotus flowers announced the arrival of a world teacher.',
+    year_600bc_palace_title: 'Palace Life & Marriage',
+    year_600bc_palace_desc: 'Raised in luxury at Tilaurakot, Siddhartha married Princess Yasodhara. Despite the kings attempts to shield him from suffering, the princes curious spirit sought the truth beyond the palace walls.',
+    year_595bc_sights_title: 'The Four Sights',
+    year_595bc_sights_desc: 'Venturing outside, Siddhartha encountered an old man, a sick man, a corpse, and an ascetic. These "Four Sights" shattered his world, revealing the inescapable nature of aging, sickness, and death.',
+    year_588bc_sarnath_title: 'The First Sermon',
+    year_588bc_sarnath_desc: 'At Sarnath, Buddha delivered his first teaching, the Dhammacakkappavattana Sutta, to five companions. He introduced the Four Noble Truths and the Eightfold Path, the core of Buddhist philosophy.',
+    year_543bc_parinirvana_title: 'The Final Parinirvana',
+    year_543bc_parinirvana_desc: 'At the age of 80 in Kushinagar, Buddha attained Mahaparinirvana. His final words, "All conditioned things are subject to decay. Strive on with diligence," continue to inspire millions.',
   },
   ne: {
     home: 'होम',
@@ -199,5 +247,29 @@ export const Translations: Record<'en' | 'ne', Record<TranslationKeys, string>> 
     year_present_sanctuary_btn: 'वर्तमान अवलोकन',
     experience: 'अनुभव',
     location_details: 'स्थान विवरण',
+    year_403ad_faxian_title: 'फाहियानको यात्रा',
+    year_403ad_faxian_desc: 'चिनियाँ भिक्षु फाहियान लुम्बिनी पुगेर पवित्र पोखरी र जन्मस्थानको आकाशीय शान्तिको दस्तावेजीकरण गर्नुभयो।',
+    year_636ad_xuanzang_title: 'ह्वेनसाङको विस्तृत वर्णन',
+    year_636ad_xuanzang_desc: 'प्रसिद्ध यात्री ह्वेनसाङले भ्रमण गरी अशोक स्तम्भको पहिलो विस्तृत लिखित अभिलेख राख्नुभयो।',
+    year_14th_decline_title: 'विस्मृतिको युग',
+    year_14th_decline_desc: '१४औं शताब्दी पछि, यो स्थल बिस्तारै तराईको जंगलले ढाकियो र शताब्दीयौंसम्म लुकेको रहस्य बन्यो।',
+    year_1967ad_masterplan_title: 'केन्जो टाङ्गेको परिकल्पना',
+    year_1967ad_masterplan_desc: 'संयुक्त राष्ट्र संघका महासचिव ऊ थान्तको भ्रमण पछि वास्तुकार केन्जो टाङ्गेद्वारा लुम्बिनी विकासको गुरुयोजना सुरु भयो। यस योजनाले आजको लुम्बिनीको जग बसालेको हो।',
+    year_3rd_bc_brick_title: 'प्रारम्भिक ईंटा संरचना',
+    year_3rd_bc_brick_desc: 'ढुंगाका ठूला संरचनाहरू भन्दा पहिले, प्रारम्भिक बौद्ध अनुयायीहरूले ईंटाका संरचनाहरू निर्माण गरेका थिए। यी तहहरूले बुद्धको महापरिनिर्वाण लगत्तै यो स्थल पूजाको केन्द्र रहेको पुष्टि गर्दछ।',
+    year_15th_rummindei_title: 'वनकी देवी रुममिन्देई',
+    year_15th_rummindei_desc: 'विस्मृतिको समयमा पनि स्थानीय समुदायले यस स्थललाई "रुममिन्देई" (वनकी देवी) को रूपमा पूजा गरिरहे। यो स्थानीय परम्पराले अन्जानमै यस जन्मस्थानको पवित्रतालाई पुनः खोज नहुन्जेलसम्म जोगाइराख्यो।',
+    year_2013ad_timber_title: 'सबैभन्दा पुरानो मन्दिर',
+    year_2013ad_timber_desc: 'सन् २०१३ को उत्खननले मन्दिरमुनि ६औं शताब्दी ईसा पूर्वको काठको संरचना फेला पारेको थियो। यसले यो स्थल विश्वकै सबैभन्दा पुरानो बौद्ध स्थल भएको पुरातात्विक प्रमाण दियो।',
+    year_623bc_lineage_title: 'शाही वंश',
+    year_623bc_lineage_desc: 'शाक्य वंशका राजा शुद्धोदन र रानी माया देवीको कोखबाट जन्मिएका सिद्धार्थ महानताका लागि निर्धारित थिए। उनको जन्ममा दैवी संकेत र कमलका फूलहरूमा सात पाइला हिँडेको कथा प्रसिद्ध छ।',
+    year_600bc_palace_title: 'राजदरबारको जीवन र विवाह',
+    year_600bc_palace_desc: 'तिलौराकोटको विलासमा हुर्किएका सिद्धार्थको विवाह राजकुमारी यशोधरासँग भएको थियो। राजाले उनलाई दुःखबाट जोगाउन खोजे पनि राजकुमारको जिज्ञासु मनले सत्यको खोजी गरिरह्यो।',
+    year_595bc_sights_title: 'चार दृश्यहरू',
+    year_595bc_sights_desc: 'बाहिर निस्कँदा सिद्धार्थले वृद्ध, रोगी, मृत शरीर र सन्यासी देखे। यी "चार दृश्य" ले उनको संसार बदल्यो र बुढ्यौली, रोग र मृत्युको वास्तविकता देखाइदियो।',
+    year_588bc_sarnath_title: 'पहिलो प्रवचन',
+    year_588bc_sarnath_desc: 'सारनाथमा बुद्धले आफ्ना पाँच साथीहरूलाई पहिलो उपदेश दिनुभयो। उनले चार आर्य सत्य र अष्टाङ्गिक मार्गको परिचय दिए, जुन बौद्ध दर्शनको मूल आधार हो।',
+    year_543bc_parinirvana_title: 'महापरिनिर्वाण',
+    year_543bc_parinirvana_desc: '८० वर्षको उमेरमा कुशीनगरमा बुद्धले महापरिनिर्वाण प्राप्त गर्नुभयो। उनका अन्तिम शब्दहरू, "सबै संस्कारित वस्तुहरू क्षय हुन्छन्, लगनशीलताका साथ प्रयास गर" आज पनि उत्तिकै प्रेरणादायी छन्।',
   }
 };
