@@ -1,12 +1,56 @@
-import React from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Colors, Typography } from '../../constants/Theme';
 import { Ionicons } from '@expo/vector-icons';
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { auth } from "../../config/firebase";
 
 export default function SignupScreen() {
   const router = useRouter();
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSignup = async () => {
+    if (!fullName || !email || !password) {
+      setError('Please fill in all fields');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
+      
+      // Update the user's profile with their full name
+      await updateProfile(userCredential.user, {
+        displayName: fullName.trim()
+      });
+
+      router.replace('/');
+    } catch (err: any) {
+      console.error(err);
+      let errorMessage = 'Failed to create account. Please try again.';
+      
+      if (err.code === 'auth/email-already-in-use') errorMessage = 'This email is already registered.';
+      else if (err.code === 'auth/invalid-email') errorMessage = 'Invalid email address.';
+      else if (err.code === 'auth/weak-password') errorMessage = 'The password is too weak.';
+      
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -46,6 +90,8 @@ export default function SignupScreen() {
                             placeholder="Siddhartha Gautama" 
                             placeholderTextColor="#FFFFFF40"
                             style={styles.input}
+                            value={fullName}
+                            onChangeText={setFullName}
                         />
                     </View>
                 </View>
@@ -59,6 +105,9 @@ export default function SignupScreen() {
                             placeholderTextColor="#FFFFFF40"
                             style={styles.input}
                             keyboardType="email-address"
+                            autoCapitalize="none"
+                            value={email}
+                            onChangeText={setEmail}
                         />
                     </View>
                 </View>
@@ -72,16 +121,32 @@ export default function SignupScreen() {
                             placeholderTextColor="#FFFFFF40"
                             style={styles.input}
                             secureTextEntry
+                            value={password}
+                            onChangeText={setPassword}
                         />
                     </View>
                 </View>
 
+                {error ? (
+                    <View style={styles.errorContainer}>
+                        <Ionicons name="alert-circle-outline" size={16} color="#FF6B6B" />
+                        <Text style={styles.errorText}>{error}</Text>
+                    </View>
+                ) : null}
+
                 <TouchableOpacity 
-                    style={styles.primaryButton}
-                    onPress={() => router.replace('/')}
+                    style={[styles.primaryButton, loading && styles.disabledButton]}
+                    onPress={handleSignup}
+                    disabled={loading}
                 >
-                    <Text style={styles.buttonText}>Join the Path</Text>
-                    <Ionicons name="star" size={20} color={Colors.natural} />
+                    {loading ? (
+                        <ActivityIndicator color={Colors.natural} />
+                    ) : (
+                        <>
+                            <Text style={styles.buttonText}>Join the Path</Text>
+                            <Ionicons name="star" size={20} color={Colors.natural} />
+                        </>
+                    )}
                 </TouchableOpacity>
             </View>
 
@@ -196,6 +261,26 @@ const styles = StyleSheet.create({
     borderRadius: 29,
     marginTop: 10,
     gap: 12,
+  },
+  disabledButton: {
+    opacity: 0.7,
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 107, 107, 0.1)',
+    padding: 12,
+    borderRadius: 15,
+    marginBottom: 15,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 107, 107, 0.2)',
+  },
+  errorText: {
+    color: '#FF6B6B',
+    fontSize: 13,
+    fontFamily: Typography.body,
+    flex: 1,
   },
   buttonText: {
     color: Colors.natural,

@@ -1,119 +1,171 @@
-import React from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Dimensions, KeyboardAvoidingView, Platform, Image, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Dimensions, KeyboardAvoidingView, Platform, Image, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Colors, Typography } from '../../constants/Theme';
 import { Ionicons, FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
 
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../config/firebase";
+
 const { width } = Dimensions.get('window');
 
 export default function LoginScreen() {
   const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      setError('Please fill in all fields');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      await signInWithEmailAndPassword(auth, email.trim(), password);
+      router.replace('/');
+    } catch (err: any) {
+      console.error(err);
+      let errorMessage = 'Failed to sign in. Please try again.';
+      
+      if (err.code === 'auth/invalid-email') errorMessage = 'Invalid email address.';
+      else if (err.code === 'auth/user-not-found') errorMessage = 'No account found with this email.';
+      else if (err.code === 'auth/wrong-password') errorMessage = 'Incorrect password.';
+      else if (err.code === 'auth/invalid-credential') errorMessage = 'Invalid email or password.';
+      
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.flex}>
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.flex}
         >
-          <ScrollView 
+          <ScrollView
             style={styles.flex}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
             {/* Logo Section */}
             <View style={styles.header}>
-                <Text style={styles.logoText}>LUMBINI GUIDE</Text>
+              <Text style={styles.logoText}>LUMBINI GUIDE</Text>
             </View>
 
             <View style={styles.topContent}>
-                <Text style={styles.title}>Start Your Pilgrimage</Text>
-                <Text style={styles.subtitle}>
-                    Begin your spiritual journey through the sacred birthgrounds of the enlightened one.
-                </Text>
+              <Text style={styles.title}>Start Your Pilgrimage</Text>
+              <Text style={styles.subtitle}>
+                Begin your spiritual journey through the sacred birthgrounds of the enlightened one.
+              </Text>
             </View>
 
             {/* Card Section */}
             <View style={styles.authCard}>
-                <View style={styles.inputGroup}>
-                    <Text style={styles.inputLabel}>SPIRITUAL IDENTITY (EMAIL)</Text>
-                    <View style={styles.inputWrapper}>
-                        <Ionicons name="mail-outline" size={20} color={Colors.white} style={styles.icon} />
-                        <TextInput 
-                            placeholder="Enter your email" 
-                            placeholderTextColor="#FFFFFF40"
-                            style={styles.input}
-                            keyboardType="email-address"
-                            autoCapitalize="none"
-                        />
-                    </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>SPIRITUAL IDENTITY (EMAIL)</Text>
+                <View style={styles.inputWrapper}>
+                  <Ionicons name="mail-outline" size={20} color={Colors.white} style={styles.icon} />
+                  <TextInput
+                    placeholder="Enter your email"
+                    placeholderTextColor="#FFFFFF40"
+                    style={styles.input}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    value={email}
+                    onChangeText={setEmail}
+                  />
                 </View>
+              </View>
 
-                <View style={styles.inputGroup}>
-                    <Text style={styles.inputLabel}>SECURE KEY (PASSWORD)</Text>
-                    <View style={styles.inputWrapper}>
-                        <Ionicons name="lock-closed-outline" size={20} color={Colors.white} style={styles.icon} />
-                        <TextInput 
-                            placeholder="........" 
-                            placeholderTextColor="#FFFFFF40"
-                            style={styles.input}
-                            secureTextEntry
-                        />
-                    </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>SECURE KEY (PASSWORD)</Text>
+                <View style={styles.inputWrapper}>
+                  <Ionicons name="lock-closed-outline" size={20} color={Colors.white} style={styles.icon} />
+                  <TextInput
+                    placeholder="........"
+                    placeholderTextColor="#FFFFFF40"
+                    style={styles.input}
+                    secureTextEntry
+                    value={password}
+                    onChangeText={setPassword}
+                  />
                 </View>
+              </View>
 
-                <TouchableOpacity 
-                    style={styles.primaryButton}
-                    onPress={() => router.replace('/')}
-                >
+              {error ? (
+                <View style={styles.errorContainer}>
+                  <Ionicons name="alert-circle-outline" size={16} color="#FF6B6B" />
+                  <Text style={styles.errorText}>{error}</Text>
+                </View>
+              ) : null}
+
+              <TouchableOpacity
+                style={[styles.primaryButton, loading && styles.disabledButton]}
+                onPress={handleLogin}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color={Colors.natural} />
+                ) : (
+                  <>
                     <Text style={styles.buttonText}>Begin Journey</Text>
                     <Ionicons name="arrow-forward" size={22} color={Colors.natural} />
-                </TouchableOpacity>
+                  </>
+                )}
+              </TouchableOpacity>
 
-                <View style={styles.dividerRow}>
-                    <View style={styles.line} />
-                    <Text style={styles.dividerText}>OR CONTINUE WITH</Text>
-                    <View style={styles.line} />
-                </View>
+              <View style={styles.dividerRow}>
+                <View style={styles.line} />
+                <Text style={styles.dividerText}>OR CONTINUE WITH</Text>
+                <View style={styles.line} />
+              </View>
 
-                <TouchableOpacity style={styles.googleButton}>
-                    <Image 
-                        source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1200px-Google_%22G%22_logo.svg.png' }} 
-                        style={styles.googleIcon}
-                    />
-                    <Text style={styles.googleButtonText}>Google Account</Text>
-                </TouchableOpacity>
+              <TouchableOpacity style={styles.googleButton}>
+                <Image
+                  source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1200px-Google_%22G%22_logo.svg.png' }}
+                  style={styles.googleIcon}
+                />
+                <Text style={styles.googleButtonText}>Google Account</Text>
+              </TouchableOpacity>
 
-                <TouchableOpacity 
-                    style={styles.guestButton}
-                    onPress={() => router.replace('/')}
-                >
-                    <Text style={styles.guestButtonText}>Continue as Guest</Text>
-                </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.guestButton}
+                onPress={() => router.replace('/')}
+              >
+                <Text style={styles.guestButtonText}>Continue as Guest</Text>
+              </TouchableOpacity>
             </View>
 
             {/* Footer */}
             <View style={styles.footer}>
-                <TouchableOpacity onPress={() => router.push('/auth/signup')}>
-                    <Text style={styles.footerLink}>
-                        New to the path? <Text style={styles.orangeLink}>Seek Invitation</Text>
-                    </Text>
-                </TouchableOpacity>
-                
-                <View style={styles.legalRow}>
-                    <Text style={styles.legalText}>PRIVACY LORE</Text>
-                    <View style={styles.dot} />
-                    <Text style={styles.legalText}>TERMS OF PEACE</Text>
-                </View>
+              <TouchableOpacity onPress={() => router.push('/auth/signup')}>
+                <Text style={styles.footerLink}>
+                  New to the path? <Text style={styles.orangeLink}>Seek Invitation</Text>
+                </Text>
+              </TouchableOpacity>
+
+              <View style={styles.legalRow}>
+                <Text style={styles.legalText}>PRIVACY LORE</Text>
+                <View style={styles.dot} />
+                <Text style={styles.legalText}>TERMS OF PEACE</Text>
+              </View>
             </View>
 
             {/* Meditation Watermark */}
-            <MaterialCommunityIcons 
-                name="meditation" 
-                size={120} 
-                color="#FFFFFF05" 
-                style={styles.watermark} 
+            <MaterialCommunityIcons
+              name="meditation"
+              size={120}
+              color="#FFFFFF05"
+              style={styles.watermark}
             />
           </ScrollView>
         </KeyboardAvoidingView>
@@ -219,6 +271,26 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 6,
+  },
+  disabledButton: {
+    opacity: 0.7,
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 107, 107, 0.1)',
+    padding: 12,
+    borderRadius: 15,
+    marginBottom: 15,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 107, 107, 0.2)',
+  },
+  errorText: {
+    color: '#FF6B6B',
+    fontSize: 13,
+    fontFamily: Typography.body,
+    flex: 1,
   },
   buttonText: {
     color: Colors.natural,

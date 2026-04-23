@@ -14,11 +14,11 @@ export default function CustomTabBar() {
     { name: 'history', path: '/historical-timeline', icon: 'compass', type: 'ionicons' },
     { name: 'stay-eat', path: '/stay-eat', icon: 'food-fork-drink', type: 'material' },
     { name: 'ar', path: '/ar', icon: 'S_AR', type: 'custom' },
-    { name: 'chat', path: '/chat', icon: 'person-circle-outline', type: 'ionicons' },
+    { name: 'chat', path: '/chat', icon: 'star-four-points-outline', type: 'material' },
   ];
 
   return (
-    <View 
+    <View
       style={[styles.wrapper, { bottom: Math.max(insets.bottom, 20) + 10 }]}
       pointerEvents="box-none"
     >
