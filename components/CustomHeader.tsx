@@ -6,6 +6,8 @@ import { useRouter } from 'expo-router';
 
 import { Colors, Typography } from '../constants/Theme';
 import { useLanguage } from '../context/LanguageContext';
+import { auth } from '../config/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import SideMenu from './SideMenu';
 
 export default function CustomHeader() {
@@ -13,7 +15,14 @@ export default function CustomHeader() {
   const router = useRouter();
   const { locale, setLanguage } = useLanguage();
   const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const [user, setUser] = useState<any>(auth.currentUser);
 
+  React.useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+    });
+    return unsubscribe;
+  }, []);
 
   const toggleLanguage = () => {
     setLanguage(locale === 'en' ? 'ne' : 'en');
@@ -55,15 +64,24 @@ export default function CustomHeader() {
             <View style={styles.notificationBadge} />
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.profileContainer}
-            onPress={() => router.push('/profile')}
-          >
-            <Image
-              source={{ uri: 'https://i.pravatar.cc/100?img=11' }}
-              style={styles.profileImage}
-            />
-          </TouchableOpacity>
+          {user ? (
+            <TouchableOpacity
+              style={styles.profileContainer}
+              onPress={() => router.push('/profile')}
+            >
+              <Image
+                source={{ uri: user.photoURL || 'https://i.pravatar.cc/100?img=11' }}
+                style={styles.profileImage}
+              />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={styles.loginButton}
+              onPress={() => router.push('/auth/login')}
+            >
+              <Ionicons name="person-circle-outline" size={24} color={Colors.primary} />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
@@ -157,4 +175,14 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+  loginButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 190, 157, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 190, 157, 0.3)',
+  }
 });

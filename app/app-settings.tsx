@@ -58,7 +58,7 @@ export default function AppSettingsScreen() {
           <Ionicons name="arrow-back" size={24} color={Colors.primary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>App Settings</Text>
-        <View style={{ width: 40 }} /> {/* Placeholder for balance */}
+        <View style={{ width: 40 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>

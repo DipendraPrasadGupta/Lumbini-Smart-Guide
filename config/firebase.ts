@@ -2,6 +2,7 @@ import { initializeApp, getApp, getApps } from "firebase/app";
 // @ts-ignore
 import { Auth, initializeAuth, getReactNativePersistence, getAuth } from "firebase/auth";
 import { Firestore, initializeFirestore, getFirestore } from "firebase/firestore";
+import { FirebaseStorage, getStorage } from "firebase/storage";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Your web app's Firebase configuration
@@ -39,4 +40,7 @@ if (isNewApp) {
   db = getFirestore(app);
 }
 
-export { app, auth, db };
+// Initialize Firebase Storage
+const storage: FirebaseStorage = getStorage(app);
+
+export { app, auth, db, storage };

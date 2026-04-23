@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { auth, db } from '../config/firebase';
+import { doc, getDoc, updateDoc, onSnapshot, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
 
 interface SavedSitesContextType {
   savedSiteIds: string[];
@@ -12,39 +15,62 @@ const SavedSitesContext = createContext<SavedSitesContextType | undefined>(undef
 export const SavedSitesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [savedSiteIds, setSavedSiteIds] = useState<string[]>([]);
 
-  // Load saved sites on mount
+  // Sync with Firestore when user is logged in
   useEffect(() => {
-    const loadSavedSites = async () => {
-      try {
-        const saved = await AsyncStorage.getItem('saved_sites');
-        if (saved) {
-          setSavedSiteIds(JSON.parse(saved));
-        }
-      } catch (error) {
-        console.error('Error loading saved sites:', error);
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // Listen to Firestore for saved sites
+        const userDocRef = doc(db, "users", user.uid);
+        const unsubscribeDoc = onSnapshot(userDocRef, (docSnap) => {
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            if (data.savedSiteIds) {
+              setSavedSiteIds(data.savedSiteIds);
+            }
+          }
+        });
+        return () => unsubscribeDoc();
+      } else {
+        // Fallback to local storage if not logged in
+        const loadLocal = async () => {
+          const saved = await AsyncStorage.getItem('saved_sites');
+          if (saved) setSavedSiteIds(JSON.parse(saved));
+        };
+        loadLocal();
       }
-    };
-    loadSavedSites();
+    });
+    return unsubscribeAuth;
   }, []);
 
-  // Save sites whenever they change
-  useEffect(() => {
-    const save = async () => {
-      try {
-        await AsyncStorage.setItem('saved_sites', JSON.stringify(savedSiteIds));
-      } catch (error) {
-        console.error('Error saving sites:', error);
-      }
-    };
-    save();
-  }, [savedSiteIds]);
-
-  const toggleSaveSite = (siteId: string) => {
-    setSavedSiteIds((prev) => 
-      prev.includes(siteId) 
-        ? prev.filter(id => id !== siteId) 
-        : [...prev, siteId]
+  const toggleSaveSite = async (siteId: string) => {
+    const user = auth.currentUser;
+    
+    // Optimistic update
+    const isAdding = !savedSiteIds.includes(siteId);
+    setSavedSiteIds(prev => 
+      isAdding ? [...prev, siteId] : prev.filter(id => id !== siteId)
     );
+
+    if (user) {
+      try {
+        const userDocRef = doc(db, "users", user.uid);
+        await updateDoc(userDocRef, {
+          savedSiteIds: isAdding ? arrayUnion(siteId) : arrayRemove(siteId)
+        });
+      } catch (error) {
+        console.error('Error updating saved sites in Firestore:', error);
+      }
+    } else {
+      // Save locally if guest
+      try {
+        const current = await AsyncStorage.getItem('saved_sites');
+        const list = current ? JSON.parse(current) : [];
+        const newList = isAdding ? [...list, siteId] : list.filter((id: string) => id !== siteId);
+        await AsyncStorage.setItem('saved_sites', JSON.stringify(newList));
+      } catch (error) {
+        console.error('Error saving sites locally:', error);
+      }
+    }
   };
 
   const isSiteSaved = (siteId: string) => savedSiteIds.includes(siteId);

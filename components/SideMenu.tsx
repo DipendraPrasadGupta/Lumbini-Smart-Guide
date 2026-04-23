@@ -6,6 +6,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Colors, Typography } from '../constants/Theme';
 import { useLanguage } from '../context/LanguageContext';
+import { auth } from '../config/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 
 const { width } = Dimensions.get('window');
 const MENU_WIDTH = width * 0.75;
@@ -22,8 +24,16 @@ export default function SideMenu({ visible, onClose }: SideMenuProps) {
   const { locale, setLanguage } = useLanguage();
   
   const [showModal, setShowModal] = useState(visible);
+  const [user, setUser] = useState<any>(auth.currentUser);
   const slideAnim = useRef(new Animated.Value(-MENU_WIDTH)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+    });
+    return unsubscribe;
+  }, []);
 
   useEffect(() => {
     if (visible) {
@@ -91,13 +101,23 @@ export default function SideMenu({ visible, onClose }: SideMenuProps) {
         {/* Sliding Menu Panel */}
         <Animated.View style={[styles.menuPanel, { transform: [{ translateX: slideAnim }] }]}>
           <View style={[styles.header, { paddingTop: Math.max(insets.top, 20) }]}>
-            <View style={styles.profileSection}>
-              <Image source={{ uri: 'https://i.pravatar.cc/100?img=11' }} style={styles.profileImage} />
+            <TouchableOpacity 
+              style={styles.profileSection} 
+              onPress={() => user ? handleNavigation('/profile') : handleNavigation('/auth/login')}
+            >
+              <Image 
+                source={{ uri: user?.photoURL || 'https://i.pravatar.cc/100?img=11' }} 
+                style={styles.profileImage} 
+              />
               <View style={styles.profileText}>
-                <Text style={styles.greeting}>Lumbini Guide</Text>
-                <Text style={styles.subtitle}>{locale === 'en' ? 'Welcome!' : 'स्वागत छ!'}</Text>
+                <Text style={styles.greeting} numberOfLines={1}>
+                  {user ? (user.displayName || 'Pilgrim') : 'Lumbini Guide'}
+                </Text>
+                <Text style={styles.subtitle}>
+                  {user ? user.email : (locale === 'en' ? 'Welcome!' : 'स्वागत छ!')}
+                </Text>
               </View>
-            </View>
+            </TouchableOpacity>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
               <Ionicons name="close" size={28} color={Colors.white} />
             </TouchableOpacity>
@@ -126,6 +146,22 @@ export default function SideMenu({ visible, onClose }: SideMenuProps) {
                 {locale === 'en' ? 'Switch to Nepali' : 'अंग्रेजीमा स्विच गर्नुहोस्'}
               </Text>
             </TouchableOpacity>
+
+            {user && (
+              <TouchableOpacity 
+                style={[styles.langButton, { marginTop: 12, backgroundColor: 'rgba(255, 107, 107, 0.1)' }]} 
+                onPress={async () => {
+                  onClose();
+                  await auth.signOut();
+                  router.replace('/auth/login');
+                }}
+              >
+                <Ionicons name="log-out-outline" size={20} color="#FF6B6B" />
+                <Text style={[styles.langText, { color: '#FF6B6B' }]}>
+                  {locale === 'en' ? 'Sign Out' : 'बाहिर निस्कनुहोस्'}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         </Animated.View>
       </View>

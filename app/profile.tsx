@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Switch, Dimensions, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Switch, Dimensions, Alert, Modal, TextInput, ActivityIndicator } from 'react-native';
 import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,8 +10,11 @@ import { SITES } from '../constants/Sites';
 import CustomTabBar from '../components/CustomTabBar';
 import CustomHeader from '../components/CustomHeader';
 import { auth, db } from '../config/firebase';
-import { onAuthStateChanged, User } from 'firebase/auth';
-import { doc, getDoc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore';
+import { onAuthStateChanged, User, updateProfile } from 'firebase/auth';
+import { doc, getDoc, onSnapshot, setDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import * as ImagePicker from 'expo-image-picker';
+import { storage } from '../config/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const { width } = Dimensions.get('window');
 
@@ -23,20 +26,21 @@ export default function ProfileScreen() {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [user, setUser] = useState<User | null>(auth.currentUser);
   const [dbUser, setDbUser] = useState<any>(null);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [editType, setEditType] = useState<'name' | 'image'>('name');
+  const [editValue, setEditValue] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
-        // Listen to user document in Firestore
         const userDocRef = doc(db, "users", firebaseUser.uid);
         
-        // Check if doc exists and create if missing
         const checkAndCreateDoc = async () => {
           try {
             const docSnap = await getDoc(userDocRef);
             if (!docSnap.exists()) {
-              console.log('No Firestore document found, creating one...');
               await setDoc(userDocRef, {
                 fullName: firebaseUser.displayName || 'Enlightened Pilgrim',
                 email: firebaseUser.email?.toLowerCase() || '',
@@ -59,7 +63,11 @@ export default function ProfileScreen() {
 
         const unsubDoc = onSnapshot(userDocRef, (docSnap) => {
           if (docSnap.exists()) {
-            setDbUser(docSnap.data());
+            const data = docSnap.data();
+            setDbUser(data);
+            if (data.preferences?.darkMode !== undefined) {
+              setIsDarkMode(data.preferences.darkMode);
+            }
           }
         });
         return () => unsubDoc();
@@ -69,6 +77,118 @@ export default function ProfileScreen() {
     });
     return unsubscribe;
   }, []);
+
+  const toggleDarkMode = async (value: boolean) => {
+    setIsDarkMode(value);
+    if (user) {
+      try {
+        const userDocRef = doc(db, "users", user.uid);
+        await updateDoc(userDocRef, {
+          "preferences.darkMode": value,
+          updatedAt: serverTimestamp()
+        });
+      } catch (error) {
+        console.error('Error updating dark mode:', error);
+      }
+    }
+  };
+
+  const handlePickImage = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Denied', 'Sorry, we need camera roll permissions to make this work!');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.5,
+      });
+
+      if (!result.canceled && result.assets && result.assets[0].uri) {
+        setIsSaving(true);
+        const uri = result.assets[0].uri;
+        
+        // Create storage reference
+        const filename = `avatars/${user?.uid}_${Date.now()}.jpg`;
+        const storageRef = ref(storage, filename);
+
+        // Fetch image as blob
+        const response = await fetch(uri);
+        const blob = await response.blob();
+
+        // Upload to Storage
+        await uploadBytes(storageRef, blob);
+        
+        // Get download URL
+        const downloadURL = await getDownloadURL(storageRef);
+
+        // Update profile
+        if (user) {
+          await updateProfile(user, { photoURL: downloadURL });
+          const userDocRef = doc(db, "users", user.uid);
+          await updateDoc(userDocRef, {
+            profileImage: downloadURL,
+            updatedAt: serverTimestamp()
+          });
+        }
+        
+        setIsEditModalVisible(false);
+        Alert.alert("Success", "Profile image updated from gallery.");
+      }
+    } catch (error) {
+      console.error('Error picking/uploading image:', error);
+      Alert.alert("Error", "Failed to upload image.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleEditName = () => {
+    setEditType('name');
+    setEditValue(dbUser?.fullName || user?.displayName || '');
+    setIsEditModalVisible(true);
+  };
+
+  const handleEditImage = () => {
+    setEditType('image');
+    setEditValue(dbUser?.profileImage || user?.photoURL || '');
+    setIsEditModalVisible(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!user || !editValue.trim()) return;
+    
+    setIsSaving(true);
+    try {
+      const userDocRef = doc(db, "users", user.uid);
+      
+      if (editType === 'name') {
+        await updateProfile(user, { displayName: editValue.trim() });
+        await updateDoc(userDocRef, {
+          fullName: editValue.trim(),
+          updatedAt: serverTimestamp()
+        });
+      } else {
+        await updateProfile(user, { photoURL: editValue.trim() });
+        await updateDoc(userDocRef, {
+          profileImage: editValue.trim(),
+          updatedAt: serverTimestamp()
+        });
+      }
+      
+      setIsEditModalVisible(false);
+      Alert.alert("Success", "Profile updated successfully.");
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      Alert.alert("Error", "Failed to save changes.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleLogout = () => {
     Alert.alert(
@@ -102,19 +222,22 @@ export default function ProfileScreen() {
         contentContainerStyle={[styles.scrollContent, { paddingBottom: 120 }]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Profile Info */}
         <View style={styles.profileHeader}>
-          <View style={styles.avatarContainer}>
+          <TouchableOpacity style={styles.avatarContainer} onPress={handleEditImage}>
             <Image 
-              source={{ uri: 'https://i.pravatar.cc/100?img=11' }} 
+              source={{ uri: dbUser?.profileImage || user?.photoURL || 'https://i.pravatar.cc/100?img=11' }} 
               style={styles.avatar}
             />
-            <TouchableOpacity style={styles.editButton}>
-              <Ionicons name="pencil" size={14} color="#331D12" />
+            <View style={styles.imageEditBadge}>
+              <Ionicons name="camera" size={12} color={Colors.white} />
+            </View>
+          </TouchableOpacity>
+          <View style={styles.nameRow}>
+            <Text style={styles.userName}>{dbUser?.fullName || user?.displayName || 'Enlightened Pilgrim'}</Text>
+            <TouchableOpacity onPress={handleEditName} style={styles.smallEditBtn}>
+              <Ionicons name="pencil" size={16} color={Colors.primary} />
             </TouchableOpacity>
           </View>
-          
-          <Text style={styles.userName}>{user?.displayName || 'Enlightened Pilgrim'}</Text>
           <View style={styles.emailRow}>
             <MaterialCommunityIcons name="email-outline" size={14} color={Colors.gray} />
             <Text style={styles.userEmail}>{user?.email || 'guest@lumbini.com'}</Text>
@@ -130,7 +253,6 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Saved Monuments Section */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>{t('saved_monuments')}</Text>
           <TouchableOpacity onPress={() => router.push('/saved-monuments')}>
@@ -166,13 +288,11 @@ export default function ProfileScreen() {
           </View>
         )}
 
-        {/* Spiritual Preferences Section */}
         <Text style={[styles.sectionTitle, { marginTop: 32, marginBottom: 16, marginHorizontal: 24 }]}>
           {t('spiritual_preferences')}
         </Text>
         
         <View style={styles.preferencesContainer}>
-          {/* Language Setting */}
           <TouchableOpacity 
             style={styles.prefItem}
             onPress={() => router.push('/language-settings')}
@@ -192,7 +312,6 @@ export default function ProfileScreen() {
             </View>
           </TouchableOpacity>
 
-          {/* Dark Mode */}
           <View style={styles.prefItem}>
             <View style={styles.prefLeft}>
               <View style={styles.prefIconContainer}>
@@ -205,13 +324,12 @@ export default function ProfileScreen() {
             </View>
             <Switch 
               value={isDarkMode} 
-              onValueChange={setIsDarkMode}
+              onValueChange={toggleDarkMode}
               trackColor={{ false: '#2C2C2C', true: '#FFBE9D' }}
               thumbColor={isDarkMode ? '#331D12' : '#767577'}
             />
           </View>
 
-          {/* App Settings */}
           <TouchableOpacity 
             style={styles.prefItem}
             onPress={() => router.push('/app-settings')}
@@ -229,13 +347,74 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <MaterialCommunityIcons name="logout" size={20} color="#FFBE9D" />
           <Text style={styles.logoutText}>{t('logout')}</Text>
         </TouchableOpacity>
 
       </ScrollView>
+
+      <Modal
+        visible={isEditModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setIsEditModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>
+              {editType === 'name' ? 'Update Spiritual Name' : 'Update Profile Image'}
+            </Text>
+            <Text style={styles.modalSubtitle}>
+              {editType === 'name' 
+                ? 'Enter your preferred name for the journey.' 
+                : 'Enter a valid image URL for your profile picture.'}
+            </Text>
+            
+            <TextInput
+              style={styles.modalInput}
+              value={editValue}
+              onChangeText={setEditValue}
+              placeholder={editType === 'name' ? 'Siddhartha' : 'https://image-url.com/profile.jpg'}
+              placeholderTextColor="rgba(255,255,255,0.3)"
+              autoFocus={editType === 'name'}
+            />
+
+            {editType === 'image' && (
+              <TouchableOpacity 
+                style={styles.galleryButton} 
+                onPress={handlePickImage}
+                disabled={isSaving}
+              >
+                <Ionicons name="images" size={20} color={Colors.primary} />
+                <Text style={styles.galleryButtonText}>Pick from Gallery</Text>
+              </TouchableOpacity>
+            )}
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity 
+                style={styles.modalCancelBtn} 
+                onPress={() => setIsEditModalVisible(false)}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.modalSaveBtn, isSaving && { opacity: 0.7 }]} 
+                onPress={handleSaveEdit}
+                disabled={isSaving}
+              >
+                {isSaving ? (
+                  <ActivityIndicator color={Colors.white} size="small" />
+                ) : (
+                  <Text style={styles.modalSaveText}>Save Changes</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       <CustomTabBar />
     </View>
   );
@@ -483,4 +662,115 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     fontFamily: Typography.body,
   },
+  imageEditBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: Colors.primary,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#1E1E1E',
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    justifyContent: 'center',
+    marginTop: 15,
+  },
+  smallEditBtn: {
+    padding: 4,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalContent: {
+    width: '100%',
+    backgroundColor: '#1A1A1A',
+    borderRadius: 30,
+    padding: 30,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  modalTitle: {
+    color: Colors.white,
+    fontSize: 20,
+    fontFamily: Typography.headline,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  modalSubtitle: {
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: 14,
+    fontFamily: Typography.body,
+    marginBottom: 24,
+  },
+  modalInput: {
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 15,
+    height: 54,
+    paddingHorizontal: 20,
+    color: Colors.white,
+    fontSize: 16,
+    fontFamily: Typography.body,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    marginBottom: 24,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalCancelBtn: {
+    flex: 1,
+    height: 54,
+    borderRadius: 27,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+  },
+  modalCancelText: {
+    color: Colors.white,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalSaveBtn: {
+    flex: 2,
+    height: 54,
+    borderRadius: 27,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.primary,
+  },
+  modalSaveText: {
+    color: Colors.natural,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  galleryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 190, 157, 0.1)',
+    borderRadius: 15,
+    height: 54,
+    gap: 12,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    borderStyle: 'dashed',
+  },
+  galleryButtonText: {
+    color: Colors.primary,
+    fontSize: 16,
+    fontWeight: '600',
+  }
 });
