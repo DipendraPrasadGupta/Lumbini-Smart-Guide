@@ -230,6 +230,7 @@ export default function EatDetailScreen() {
         </View>
         <TouchableOpacity 
           style={styles.bookButton}
+          onPress={() => router.push({ pathname: '/booking-eat/[id]', params: { id: restaurant.id } } as any)}
         >
           <Text style={styles.bookButtonText}>Reserve Table</Text>
         </TouchableOpacity>

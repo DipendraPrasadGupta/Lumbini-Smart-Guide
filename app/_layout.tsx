@@ -77,6 +77,7 @@ export default function RootLayout() {
             <Stack.Screen name="stay-detail/[id]" options={{ headerShown: false }} />
             <Stack.Screen name="eat-detail/[id]" options={{ headerShown: false }} />
             <Stack.Screen name="booking-stays/[id]" options={{ headerShown: false }} />
+            <Stack.Screen name="booking-eat/[id]" options={{ headerShown: false }} />
           </Stack>
         </SavedSitesProvider>
       </LanguageProvider>

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,16 +7,16 @@ import {
   TouchableOpacity,
   StatusBar,
   Dimensions,
-  Animated,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Typography } from '../../constants/Theme';
-import { STAYS } from '../../constants/Stays';
-import CustomTabBar from '../../components/CustomTabBar';
+import { RESTAURANTS } from '../../constants/Stays';
 
 const { width } = Dimensions.get('window');
+
+const TIMES = ['10:00 AM', '12:00 PM', '02:00 PM', '06:00 PM', '08:00 PM', '09:00 PM'];
 
 const generateNextDays = () => {
   const days = [];
@@ -37,33 +37,27 @@ const generateNextDays = () => {
 
 const NEXT_DAYS = generateNextDays();
 
-export default function BookingScreen() {
+export default function BookingEatScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   
   const [selectedDateObj, setSelectedDateObj] = useState(NEXT_DAYS[0]);
-  const [guests, setGuests] = useState(1);
-  const [nights, setNights] = useState(2);
+  const [guests, setGuests] = useState(2);
+  const [selectedTime, setSelectedTime] = useState('06:00 PM');
   const [isConfirmed, setIsConfirmed] = useState(false);
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-GB', {
       day: 'numeric',
-      month: 'short',
+      month: 'long',
       year: 'numeric',
     });
   };
 
-  const stay = STAYS.find((s) => s.id === id);
+  const restaurant = RESTAURANTS.find((r) => r.id === id);
 
-  const totalPrice = useMemo(() => {
-    if (!stay?.price) return 0;
-    const priceValue = parseInt(stay.price.replace(/[^0-9]/g, ''));
-    return priceValue * nights * (stay.type === 'hotel' ? guests : 1); // Monasteries usually fixed per room
-  }, [stay, nights, guests]);
-
-  if (!stay) return null;
+  if (!restaurant) return null;
 
   if (isConfirmed) {
     return (
@@ -71,21 +65,19 @@ export default function BookingScreen() {
         <StatusBar barStyle="light-content" />
         <View style={styles.successContainer}>
           <View style={styles.successIcon}>
-            <Ionicons name="checkmark-circle" size={100} color="#2ECC71" />
+            <MaterialCommunityIcons name="food-variant" size={100} color="#2ECC71" />
           </View>
-          <Text style={styles.successTitle}>Journey Confirmed</Text>
+          <Text style={styles.successTitle}>Table Reserved</Text>
           <Text style={styles.successText}>
-            Your sanctuary at {stay.name} is ready. 
-            A confirmation email has been sent to your spirit.
+            Your place at {restaurant.name} is waiting for your spirit on {formatDate(selectedDateObj.fullDate)} at {selectedTime}.
           </Text>
           <TouchableOpacity 
             style={styles.homeButton}
-            onPress={() => router.push('/')}
+            onPress={() => router.push('/stay-eat')}
           >
-            <Text style={styles.homeButtonText}>Back to Map</Text>
+            <Text style={styles.homeButtonText}>Back to Discovery</Text>
           </TouchableOpacity>
         </View>
-        <CustomTabBar />
       </View>
     );
   }
@@ -98,27 +90,27 @@ export default function BookingScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="chevron-back" size={24} color={Colors.white} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Secure Booking</Text>
+        <Text style={styles.headerTitle}>Table Reservation</Text>
         <View style={{ width: 44 }} />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {/* Stay Summary */}
+        {/* Restaurant Summary */}
         <View style={styles.summaryCard}>
           <View style={styles.summaryInfo}>
-            <Text style={styles.stayType}>{stay.type.toUpperCase()}</Text>
-            <Text style={styles.stayName}>{stay.name}</Text>
-            <Text style={styles.stayLocation}>{stay.distance} from Holy Site</Text>
+            <Text style={styles.restType}>{restaurant.type.toUpperCase()}</Text>
+            <Text style={styles.restName}>{restaurant.name}</Text>
+            <Text style={styles.restLocation}>{restaurant.distance} from Holy Site</Text>
           </View>
-          <View style={styles.priceTag}>
-            <Text style={styles.priceTagValue}>{stay.price}</Text>
-            <Text style={styles.priceTagLabel}>/ night</Text>
+          <View style={styles.ratingBadge}>
+            <Ionicons name="star" size={16} color="#FFD700" />
+            <Text style={styles.ratingValue}>{restaurant.rating}</Text>
           </View>
         </View>
 
         {/* Sanctuary Calendar */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Check-in Sanctuary Calendar</Text>
+          <Text style={styles.sectionTitle}>Sanctuary Calendar</Text>
           <ScrollView 
             horizontal 
             showsHorizontalScrollIndicator={false}
@@ -141,53 +133,62 @@ export default function BookingScreen() {
           </ScrollView>
         </View>
 
-        {/* Nights & Guests */}
+        {/* Time Selection */}
         <View style={styles.section}>
-          <View style={styles.row}>
-            <View style={styles.flex1}>
-              <Text style={styles.sectionTitle}>Duration</Text>
-              <View style={styles.counterRowSmall}>
-                <TouchableOpacity onPress={() => nights > 1 && setNights(nights - 1)} style={styles.counterBtnSmall}>
-                  <Ionicons name="remove" size={18} color={Colors.white} />
-                </TouchableOpacity>
-                <Text style={styles.counterValueSmall}>{nights} nights</Text>
-                <TouchableOpacity onPress={() => setNights(nights + 1)} style={styles.counterBtnSmall}>
-                  <Ionicons name="add" size={18} color={Colors.white} />
-                </TouchableOpacity>
-              </View>
+          <Text style={styles.sectionTitle}>Preferred Time</Text>
+          <View style={styles.timeGrid}>
+            {TIMES.map((time) => (
+              <TouchableOpacity 
+                key={time}
+                style={[
+                  styles.timeChip,
+                  selectedTime === time && styles.activeTimeChip
+                ]}
+                onPress={() => setSelectedTime(time)}
+              >
+                <Text style={[
+                  styles.timeText,
+                  selectedTime === time && styles.activeTimeText
+                ]}>
+                  {time}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Guest Selection */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Guests</Text>
+          <View style={styles.counterRow}>
+            <View>
+              <Text style={styles.counterTitle}>Number of Spirits</Text>
+              <Text style={styles.counterSubtitle}>Total seats available: 12</Text>
             </View>
-            <View style={styles.flex2}>
-              <Text style={styles.sectionTitle}>Spirits</Text>
-              <View style={styles.counterRowSmall}>
-                <TouchableOpacity onPress={() => guests > 1 && setGuests(guests - 1)} style={styles.counterBtnSmall}>
-                  <Ionicons name="remove" size={18} color={Colors.white} />
-                </TouchableOpacity>
-                <Text style={styles.counterValueSmall}>{guests} Travelers</Text>
-                <TouchableOpacity onPress={() => guests < 4 && setGuests(guests + 1)} style={styles.counterBtnSmall}>
-                  <Ionicons name="add" size={18} color={Colors.white} />
-                </TouchableOpacity>
-              </View>
+            <View style={styles.counterActions}>
+              <TouchableOpacity 
+                style={styles.counterBtn}
+                onPress={() => guests > 1 && setGuests(guests - 1)}
+              >
+                <Ionicons name="remove" size={20} color={Colors.white} />
+              </TouchableOpacity>
+              <Text style={styles.counterValue}>{guests}</Text>
+              <TouchableOpacity 
+                style={styles.counterBtn}
+                onPress={() => guests < 12 && setGuests(guests + 1)}
+              >
+                <Ionicons name="add" size={20} color={Colors.white} />
+              </TouchableOpacity>
             </View>
           </View>
         </View>
 
-        {/* Payment Summary */}
-        <View style={styles.paymentSection}>
-          <Text style={styles.sectionTitle}>Payment Summary</Text>
-          <View style={styles.priceRow}>
-            <Text style={styles.priceLabel}>{stay.price || 'N/A'} x {nights} nights</Text>
-            <Text style={styles.priceAmount}>
-              ${stay.price ? parseInt(stay.price.replace(/[^0-9]/g, '')) * nights : 0}
-            </Text>
-          </View>
-          <View style={styles.priceRow}>
-            <Text style={styles.priceLabel}>Service Fee</Text>
-            <Text style={styles.priceAmount}>$0.00</Text>
-          </View>
-          <View style={[styles.priceRow, styles.totalRow]}>
-            <Text style={styles.totalLabel}>Total Holy Contribution</Text>
-            <Text style={styles.totalValue}>${totalPrice}</Text>
-          </View>
+        {/* Note */}
+        <View style={styles.noteBox}>
+          <Ionicons name="information-circle-outline" size={20} color={Colors.primary} />
+          <Text style={styles.noteText}>
+            Table will be held for 15 minutes after the reserved time.
+          </Text>
         </View>
 
         <View style={styles.footerSpacer} />
@@ -199,8 +200,8 @@ export default function BookingScreen() {
           style={styles.confirmButton}
           onPress={() => setIsConfirmed(true)}
         >
-          <Text style={styles.confirmButtonText}>Confirm Sanctuary</Text>
-          <MaterialCommunityIcons name="shield-check" size={20} color={Colors.natural} />
+          <Text style={styles.confirmButtonText}>Confirm Reservation</Text>
+          <MaterialCommunityIcons name="silverware-clean" size={20} color={Colors.natural} />
         </TouchableOpacity>
       </View>
     </View>
@@ -255,35 +256,37 @@ const styles = StyleSheet.create({
   summaryInfo: {
     flex: 1,
   },
-  stayType: {
+  restType: {
     color: Colors.primary,
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 1,
     marginBottom: 4,
   },
-  stayName: {
+  restName: {
     color: Colors.white,
     fontSize: 22,
     fontFamily: Typography.headline,
     fontWeight: '700',
     marginBottom: 4,
   },
-  stayLocation: {
+  restLocation: {
     color: 'rgba(255, 255, 255, 0.5)',
     fontSize: 12,
   },
-  priceTag: {
-    alignItems: 'flex-end',
+  ratingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
   },
-  priceTagValue: {
+  ratingValue: {
     color: Colors.white,
-    fontSize: 20,
-    fontWeight: '800',
-  },
-  priceTagLabel: {
-    color: 'rgba(255, 255, 255, 0.5)',
-    fontSize: 12,
+    fontSize: 14,
+    fontWeight: '700',
   },
   section: {
     marginBottom: 32,
@@ -332,87 +335,94 @@ const styles = StyleSheet.create({
   activeDayText: {
     color: Colors.natural,
   },
-  row: {
+  timeGrid: {
     flexDirection: 'row',
-    gap: 16,
-  },
-  flex1: {
-    flex: 1,
-  },
-  flex2: {
-    flex: 1.2,
-  },
-  counterRowSmall: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexWrap: 'wrap',
     gap: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    padding: 12,
+  },
+  timeChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderRadius: 15,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
-    justifyContent: 'center',
-    minWidth: 110,
+    width: (width - 48 - 24) / 3,
+    alignItems: 'center',
   },
-  counterBtnSmall: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+  activeTimeChip: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  timeText: {
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontWeight: '600',
+    fontSize: 12,
+  },
+  activeTimeText: {
+    color: Colors.natural,
+    fontWeight: '700',
+  },
+  counterRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    padding: 20,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  counterTitle: {
+    color: Colors.white,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  counterSubtitle: {
+    color: 'rgba(255, 255, 255, 0.4)',
+    fontSize: 12,
+  },
+  counterActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 20,
+  },
+  counterBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  counterValueSmall: {
+  counterValue: {
     color: Colors.white,
-    fontSize: 12,
+    fontSize: 18,
     fontWeight: '700',
-    minWidth: 15,
+    width: 24,
     textAlign: 'center',
   },
-  paymentSection: {
-    marginBottom: 40,
-    padding: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
-  },
-  priceRow: {
+  noteBox: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
+    padding: 16,
+    backgroundColor: 'rgba(230, 126, 34, 0.05)',
+    borderRadius: 16,
+    gap: 12,
+    alignItems: 'center',
+    marginBottom: 40,
   },
-  priceLabel: {
+  noteText: {
     color: 'rgba(255, 255, 255, 0.5)',
-    fontSize: 14,
-  },
-  priceAmount: {
-    color: Colors.white,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  totalRow: {
-    marginTop: 12,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  totalLabel: {
-    color: Colors.white,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  totalValue: {
-    color: Colors.primary,
-    fontSize: 22,
-    fontWeight: '800',
+    fontSize: 12,
+    flex: 1,
+    lineHeight: 18,
   },
   bottomBar: {
     position: 'absolute',
     bottom: 24,
     left: 20,
     right: 20,
-    zIndex: 150,
+    zIndex: 50,
   },
   confirmButton: {
     backgroundColor: Colors.primary,
