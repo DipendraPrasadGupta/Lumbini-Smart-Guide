@@ -5,7 +5,8 @@ import { useRouter } from 'expo-router';
 import { Colors, Typography } from '../../constants/Theme';
 import { Ionicons } from '@expo/vector-icons';
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { auth } from "../../config/firebase";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { auth, db } from "../../config/firebase";
 
 export default function SignupScreen() {
   const router = useRouter();
@@ -30,12 +31,37 @@ export default function SignupScreen() {
     setError('');
 
     try {
+      console.log('Attempting to create user with email:', email.trim());
       const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
+      console.log('User created successfully:', userCredential.user.uid);
       
       // Update the user's profile with their full name
+      console.log('Updating profile with name:', fullName.trim());
       await updateProfile(userCredential.user, {
         displayName: fullName.trim()
       });
+
+      // Initialize user data in Firestore
+      console.log('Initializing Firestore document...');
+      try {
+        await setDoc(doc(db, "users", userCredential.user.uid), {
+          fullName: fullName.trim(),
+          email: email.trim().toLowerCase(),
+          level: 1,
+          monumentsVisited: 0,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+          preferences: {
+            darkMode: true,
+            language: 'en'
+          }
+        });
+        console.log('Firestore document initialized successfully');
+      } catch (firestoreErr) {
+        console.error('Firestore Initialization Error:', firestoreErr);
+        // We still redirect even if firestore fails for now, or we can show an error
+        // setError('Account created, but failed to initialize profile data.');
+      }
 
       router.replace('/');
     } catch (err: any) {

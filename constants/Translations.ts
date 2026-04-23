@@ -22,6 +22,8 @@ export type TranslationKeys =
   | 'app_settings'
   | 'app_settings_sub'
   | 'logout'
+  | 'logout_confirm_message'
+  | 'cancel'
   | 'away'
   | 'begin_journey'
   | 'unesco_site'
@@ -86,6 +88,8 @@ export const Translations: Record<'en' | 'ne', Record<TranslationKeys, string>> 
     app_settings: 'App Settings',
     app_settings_sub: 'Notifications, cache, and system data',
     logout: 'LOGOUT FROM PATH',
+    logout_confirm_message: 'Are you sure you want to sign out of your spiritual journey?',
+    cancel: 'CANCEL',
     away: 'away',
     begin_journey: 'BEGIN JOURNEY',
     unesco_site: 'UNESCO WORLD HERITAGE SITE',
@@ -149,6 +153,8 @@ export const Translations: Record<'en' | 'ne', Record<TranslationKeys, string>> 
     app_settings: 'एप सेटिङहरू',
     app_settings_sub: 'सूचनाहरू, क्यास, र प्रणाली डाटा',
     logout: 'Path बाट बाहिर निस्कनुहोस्',
+    logout_confirm_message: 'के तपाईं आफ्नो आध्यात्मिक यात्राबाट बाहिर निस्कन चाहनुहुन्छ?',
+    cancel: 'रद्द गर्नुहोस्',
     away: 'टाढा',
     begin_journey: 'यात्रा सुरु गर्नुहोस्',
     unesco_site: 'युनेस्को विश्व सम्पदा क्षेत्र',

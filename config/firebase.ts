@@ -1,7 +1,7 @@
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApp, getApps } from "firebase/app";
 // @ts-ignore
-import { initializeAuth, getReactNativePersistence } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { Auth, initializeAuth, getReactNativePersistence, getAuth } from "firebase/auth";
+import { Firestore, initializeFirestore, getFirestore } from "firebase/firestore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Your web app's Firebase configuration
@@ -16,14 +16,27 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+const isNewApp = getApps().length === 0;
+const app = isNewApp ? initializeApp(firebaseConfig) : getApp();
 
 // Initialize Firebase Auth with React Native persistence
-const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(AsyncStorage)
-});
+let auth: Auth;
+if (isNewApp) {
+  auth = initializeAuth(app, {
+    persistence: getReactNativePersistence(AsyncStorage)
+  });
+} else {
+  auth = getAuth(app);
+}
 
-// Initialize Firestore Database
-const db = getFirestore(app);
+// Initialize Firestore Database with React Native specific settings
+let db: Firestore;
+if (isNewApp) {
+  db = initializeFirestore(app, {
+    experimentalAutoDetectLongPolling: true,
+  });
+} else {
+  db = getFirestore(app);
+}
 
 export { app, auth, db };

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Switch, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Switch, Dimensions, Alert } from 'react-native';
 import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,6 +9,9 @@ import { useSavedSites } from '../context/SavedSitesContext';
 import { SITES } from '../constants/Sites';
 import CustomTabBar from '../components/CustomTabBar';
 import CustomHeader from '../components/CustomHeader';
+import { auth, db } from '../config/firebase';
+import { onAuthStateChanged, User } from 'firebase/auth';
+import { doc, getDoc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore';
 
 const { width } = Dimensions.get('window');
 
@@ -18,6 +21,76 @@ export default function ProfileScreen() {
   const { t, locale, setLanguage } = useLanguage();
   const { savedSiteIds, toggleSaveSite } = useSavedSites();
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [user, setUser] = useState<User | null>(auth.currentUser);
+  const [dbUser, setDbUser] = useState<any>(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+      if (firebaseUser) {
+        // Listen to user document in Firestore
+        const userDocRef = doc(db, "users", firebaseUser.uid);
+        
+        // Check if doc exists and create if missing
+        const checkAndCreateDoc = async () => {
+          try {
+            const docSnap = await getDoc(userDocRef);
+            if (!docSnap.exists()) {
+              console.log('No Firestore document found, creating one...');
+              await setDoc(userDocRef, {
+                fullName: firebaseUser.displayName || 'Enlightened Pilgrim',
+                email: firebaseUser.email?.toLowerCase() || '',
+                level: 1,
+                monumentsVisited: 0,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+                preferences: {
+                  darkMode: true,
+                  language: 'en'
+                }
+              });
+            }
+          } catch (err) {
+            console.error('Error checking/creating user doc:', err);
+          }
+        };
+
+        checkAndCreateDoc();
+
+        const unsubDoc = onSnapshot(userDocRef, (docSnap) => {
+          if (docSnap.exists()) {
+            setDbUser(docSnap.data());
+          }
+        });
+        return () => unsubDoc();
+      } else {
+        setDbUser(null);
+      }
+    });
+    return unsubscribe;
+  }, []);
+
+  const handleLogout = () => {
+    Alert.alert(
+      t('logout'),
+      t('logout_confirm_message'),
+      [
+        { text: t('cancel'), style: 'cancel' },
+        { 
+          text: t('logout'), 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await auth.signOut();
+              router.replace('/auth/login');
+            } catch (error) {
+              console.error('Logout Error:', error);
+            }
+          }
+        }
+      ]
+    );
+  };
 
   const savedMonumentsData = savedSiteIds.map(id => SITES[id]).filter(Boolean);
 
@@ -41,18 +114,18 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </View>
           
-          <Text style={styles.userName}>Enlightened Pilgrim</Text>
+          <Text style={styles.userName}>{user?.displayName || 'Enlightened Pilgrim'}</Text>
           <View style={styles.emailRow}>
             <MaterialCommunityIcons name="email-outline" size={14} color={Colors.gray} />
-            <Text style={styles.userEmail}>pilgrim@lumbini.com</Text>
+            <Text style={styles.userEmail}>{user?.email || 'guest@lumbini.com'}</Text>
           </View>
 
           <View style={styles.badgeRow}>
             <View style={styles.badge}>
-              <Text style={styles.badgeText}>SEEKER LEVEL 4</Text>
+              <Text style={styles.badgeText}>SEEKER LEVEL {dbUser?.level || 1}</Text>
             </View>
             <View style={[styles.badge, styles.badgeSecondary]}>
-              <Text style={styles.badgeText}>12 MONUMENTS VISITED</Text>
+              <Text style={styles.badgeText}>{dbUser?.monumentsVisited || 0} MONUMENTS VISITED</Text>
             </View>
           </View>
         </View>
@@ -157,7 +230,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutButton}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <MaterialCommunityIcons name="logout" size={20} color="#FFBE9D" />
           <Text style={styles.logoutText}>{t('logout')}</Text>
         </TouchableOpacity>

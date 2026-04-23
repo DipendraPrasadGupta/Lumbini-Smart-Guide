@@ -1,7 +1,9 @@
-import { Stack } from "expo-router";
-import * as ExpoSplashScreen from 'expo-splash-screen';
+import { Stack, useRouter, useSegments } from "expo-router";
+import { preventAutoHideAsync, hideAsync } from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import { useEffect, useState } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../config/firebase';
 import { NotoSerif_400Regular, NotoSerif_700Bold } from '@expo-google-fonts/noto-serif';
 import { Inter_400Regular, Inter_700Bold } from '@expo-google-fonts/inter';
 import { Manrope_400Regular, Manrope_700Bold } from '@expo-google-fonts/manrope';
@@ -10,10 +12,14 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { LanguageProvider } from '../context/LanguageContext';
 import { SavedSitesProvider } from '../context/SavedSitesContext';
 
-ExpoSplashScreen.preventAutoHideAsync();
+preventAutoHideAsync();
 
 export default function RootLayout() {
   const [isAppReady, setIsAppReady] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [user, setUser] = useState<any>(null);
+  const router = useRouter();
+  const segments = useSegments();
   const [loaded, error] = useFonts({
     NotoSerif_400Regular,
     NotoSerif_700Bold,
@@ -25,7 +31,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     // Hide the native splash screen as soon as the JS bundle loads
-    ExpoSplashScreen.hideAsync();
+    hideAsync();
     
     async function prepare() {
       try {
@@ -42,10 +48,36 @@ export default function RootLayout() {
     prepare();
   }, []);
 
+  // Handle User State Changes
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+      if (isInitializing) setIsInitializing(false);
+    });
+
+    return unsubscribe;
+  }, [isInitializing]);
+
+  // Redirect Logic
+  useEffect(() => {
+    if (isInitializing || !isAppReady || !loaded) return;
+
+    const inAuthGroup = segments[0] === 'auth' || segments[0] === 'onboarding';
+
+    if (!user && !inAuthGroup) {
+      // If user is not logged in and not in auth group, we might want to redirect to login
+      // However, for this app, we might allow guest access to 'index'
+      // router.replace('/auth/login');
+    } else if (user && inAuthGroup) {
+      // If user is logged in and trying to access login/signup/onboarding, redirect to home
+      router.replace('/');
+    }
+  }, [user, segments, isInitializing, isAppReady, loaded]);
+
   useEffect(() => {
     if (loaded || error) {
       if (isAppReady) {
-        ExpoSplashScreen.hideAsync();
+        hideAsync();
       }
     }
   }, [loaded, error, isAppReady]);
