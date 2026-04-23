@@ -6,11 +6,12 @@ interface MonumentCardProps {
   name: string;
   distance: string;
   image: any;
+  onPress?: () => void;
 }
 
-const MonumentCard: React.FC<MonumentCardProps> = ({ name, distance, image }) => {
+const MonumentCard: React.FC<MonumentCardProps> = ({ name, distance, image, onPress }) => {
   return (
-    <TouchableOpacity style={styles.container} activeOpacity={0.9}>
+    <TouchableOpacity style={styles.container} activeOpacity={0.9} onPress={onPress}>
       <Image source={image} style={styles.image} />
       <View style={styles.overlay} />
       <View style={styles.content}>

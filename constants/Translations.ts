@@ -61,7 +61,9 @@ export type TranslationKeys =
   | 'year_1997ad_unesco_btn'
   | 'year_present_sanctuary_title'
   | 'year_present_sanctuary_desc'
-  | 'year_present_sanctuary_btn';
+  | 'year_present_sanctuary_btn'
+  | 'experience'
+  | 'location_details';
 
 export const Translations: Record<'en' | 'ne', Record<TranslationKeys, string>> = {
   en: {
@@ -128,6 +130,8 @@ export const Translations: Record<'en' | 'ne', Record<TranslationKeys, string>> 
     year_present_sanctuary_title: 'Universal Sanctuary',
     year_present_sanctuary_desc: 'Today, Lumbini is a global center for peace, attracting millions of pilgrims every year.',
     year_present_sanctuary_btn: 'Current Overview',
+    experience: 'EXPERIENCE',
+    location_details: 'LOCATION DETAILS',
   },
   ne: {
     home: 'होम',
@@ -193,5 +197,7 @@ export const Translations: Record<'en' | 'ne', Record<TranslationKeys, string>> 
     year_present_sanctuary_title: 'विश्वव्यापी शान्तिधाम',
     year_present_sanctuary_desc: 'आज लुम्बिनी शान्तिको विश्वव्यापी केन्द्र हो, जसले हरेक वर्ष लाखौं तीर्थयात्रीहरूलाई आकर्षित गर्दछ।',
     year_present_sanctuary_btn: 'वर्तमान अवलोकन',
+    experience: 'अनुभव',
+    location_details: 'स्थान विवरण',
   }
 };

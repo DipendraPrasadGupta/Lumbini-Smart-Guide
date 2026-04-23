@@ -265,7 +265,7 @@ export default function ProfileScreen() {
             <TouchableOpacity 
               key={item.id} 
               style={styles.monumentCard}
-              onPress={() => router.push(item.id === 'maya_devi' ? '/temple-detail' : '/')}
+              onPress={() => router.push({ pathname: '/site-detail', params: { id: item.id } })}
             >
               <Image source={item.image} style={styles.cardImage} />
               <View style={styles.cardInfo}>

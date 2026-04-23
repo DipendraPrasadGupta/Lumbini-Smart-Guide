@@ -19,12 +19,10 @@ export default function LocationCard({ site }: LocationCardProps) {
   const saved = isSiteSaved(site.id);
 
   const handleBeginJourney = () => {
-    if (site.id === 'maya_devi') {
-      router.push('/temple-detail');
-    } else {
-      // For other sites, we can navigate to a generic screen or just log for now
-      console.log(`Navigating to ${site.title} detail`);
-    }
+    router.push({
+      pathname: '/site-detail',
+      params: { id: site.id }
+    });
   };
 
   const title = locale === 'ne' ? site.titleNe : site.title;
@@ -33,26 +31,28 @@ export default function LocationCard({ site }: LocationCardProps) {
 
   return (
     <View style={styles.container}>
-      {/* Selection Label */}
-      <Text style={styles.selectionLabel}>{site.category}</Text>
+      <TouchableOpacity onPress={handleBeginJourney} activeOpacity={0.9}>
+        {/* Selection Label */}
+        <Text style={styles.selectionLabel}>{site.category}</Text>
 
-      <View style={styles.headerRow}>
-        <Image 
-          source={site.image} 
-          style={styles.image}
-        />
-        <View style={styles.titleContainer}>
-          <Text style={styles.titleText}>{title}</Text>
-          <View style={styles.locationRow}>
-            <Ionicons name="location" size={14} color={Colors.primary} />
-            <Text style={styles.locationText}>{location} • {site.distance}</Text>
+        <View style={styles.headerRow}>
+          <Image 
+            source={site.image} 
+            style={styles.image}
+          />
+          <View style={styles.titleContainer}>
+            <Text style={styles.titleText}>{title}</Text>
+            <View style={styles.locationRow}>
+              <Ionicons name="location" size={14} color={Colors.primary} />
+              <Text style={styles.locationText}>{location} • {site.distance}</Text>
+            </View>
           </View>
         </View>
-      </View>
 
-      <Text style={styles.descriptionText}>
-        {description}
-      </Text>
+        <Text style={styles.descriptionText}>
+          {description}
+        </Text>
+      </TouchableOpacity>
 
       <View style={styles.buttonRow}>
         <TouchableOpacity 

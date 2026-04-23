@@ -101,7 +101,7 @@ export default function RootLayout() {
             <Stack.Screen name="ar" options={{ headerShown: false }} />
             <Stack.Screen name="chat" options={{ headerShown: false }} />
             <Stack.Screen name="historical-timeline" options={{ headerShown: false }} />
-            <Stack.Screen name="temple-detail" options={{ headerShown: false }} />
+            <Stack.Screen name="site-detail" options={{ headerShown: false }} />
             <Stack.Screen name="saved-monuments" options={{ headerShown: false }} />
             <Stack.Screen name="language-settings" options={{ headerShown: false }} />
             <Stack.Screen name="app-settings" options={{ headerShown: false }} />
